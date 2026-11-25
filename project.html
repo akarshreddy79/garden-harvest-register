@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garden Harvest Register</title>
+    <style>
+        :root {
+            --primary: #245b38;
+            --primary-dark: #1b452a;
+            --primary-light: #e8f4eb;
+            --bg: #f4f7f2;
+            --text: #243126;
+            --muted: #68756a;
+            --border: #e2e9e1;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 24px 16px; }
+        .container { max-width: 1440px; margin: 0 auto; }
+
+        /* Common Card & Button Styles */
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 3px 12px rgba(35, 65, 42, 0.05);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-outline { background: #fff; border: 1px solid #ccd8cc; color: var(--text); }
+        .btn-outline:hover { background: var(--primary-light); border-color: #a4caa9; }
+        .btn-sm { padding: 4px 10px; font-size: 0.8rem; border-radius: 999px; }
+
+        /* VIEW 1: Integrated Login View */
+        #loginView {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 32px 28px;
+            box-shadow: 0 8px 30px rgba(35, 65, 42, 0.08);
+            text-align: center;
+        }
+
+        .login-card h1 { color: var(--primary); margin: 6px 0; font-size: 1.7rem; }
+        .login-card p { color: var(--muted); margin: 0 0 20px; font-size: 0.9rem; }
+        .form-group { text-align: left; margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 700; color: #3b4e3e; }
+        .form-input {
+            width: 100%;
+            min-height: 42px;
+            padding: 8px 12px;
+            border: 1px solid #ccd8cc;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(36, 91, 56, 0.15); }
+        .quick-logins { display: flex; gap: 8px; margin-top: 14px; }
+        .quick-logins button { flex: 1; }
+
+        /* VIEW 2: Dashboard View */
+        #dashboardView { display: none; }
+        header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+        header h1 { margin: 0 0 4px; color: var(--primary); font-size: 1.8rem; font-weight: 800; }
+        header p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+        .user-panel { display: flex; align-items: center; gap: 10px; background: #fff; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.86rem; }
+
+        /* Category Stat Strip */
+        .category-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 18px; }
+        .cat-box { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+        .cat-box.veg { border-left: 4px solid #28713b; }
+        .cat-box.root { border-left: 4px solid #d97818; }
+        .cat-box.fruit { border-left: 4px solid #cf3b6a; }
+        .cat-box.herb { border-left: 4px solid #458a58; }
+        .cat-box .icon { font-size: 1.8rem; }
+        .cat-box .name { font-size: 0.75rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .cat-box .val { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+
+        /* KPI Grid */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .kpi-card { padding: 18px; position: relative; border-top: 4px solid var(--primary); }
+        .kpi-title { color: var(--muted); font-size: 0.85rem; }
+        .kpi-value { margin: 8px 0 4px; color: var(--primary); font-size: 1.7rem; font-weight: 800; }
+        .kpi-desc { color: var(--muted); font-size: 0.8rem; }
+
+        /* Main Layout */
+        .layout-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(320px, 1fr); gap: 20px; align-items: start; }
+        @media (max-width: 980px) { .layout-grid { grid-template-columns: 1fr; } }
+
+        /* Filter Controls & Pills */
+        .category-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .pill-btn {
+            background: #fff;
+            border: 1px solid #ccd8cc;
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #3b4d3e;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pill-btn:hover { background: #eef5ee; }
+        .pill-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .pill-count { background: rgba(0,0,0,0.07); padding: 2px 6px; border-radius: 999px; margin-left: 4px; font-size: 0.75rem; }
+        .pill-btn.active .pill-count { background: rgba(255,255,255,0.25); color: #fff; }
+
+        .filter-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .search-box { flex: 1 1 240px; min-height: 40px; padding: 8px 12px; border: 1px solid #ccd8cc; border-radius: 8px; font: inherit; outline: none; }
+        .filter-select { flex: 0 1 180px; min-height: 40px; padding: 8px 12px; border: 1px solid #ccd8cc; border-radius: 8px; font: inherit; background: #fff; }
+
+        /* Table */
+        .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        th, td { padding: 11px 12px; border-bottom: 1px solid #e8eee7; text-align: left; }
+        th { background: #f2f6f1; color: #405846; font-weight: 700; cursor: pointer; user-select: none; }
+        th:hover { background: #e6ede5; }
+        tbody tr:hover { background: #f6faf5; }
+
+        /* Badges */
+        .cat-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+        .cat-badge.veg { background: #e6f6ea; color: #216a35; }
+        .cat-badge.root { background: #fff3e6; color: #a35b13; }
+        .cat-badge.fruit { background: #fdf0f4; color: #a82755; }
+        .cat-badge.herb { background: #edf6ef; color: #2e6c3d; }
+        .grade-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+        .grade-a { background: #e4f4e8; color: #28713b; }
+        .grade-b { background: #fff4d6; color: #8a6515; }
+        .grade-c { background: #fde8e6; color: #a3342c; }
+        .grade-org { background: #e6f0fb; color: #315e91; }
+        .bed-badge { background: #f0f4f1; border: 1px solid #d5e0d7; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.8rem; }
+        .weight-pill { font-weight: 700; color: #245b38; }
+
+        /* Yield Progress Bars */
+        .crop-bar { margin: 12px 0; }
+        .crop-bar-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+        .crop-bar-bg { height: 8px; background: #e9efe8; border-radius: 999px; overflow: hidden; }
+        .crop-bar-fill { height: 100%; background: var(--primary); border-radius: inherit; }
+
+        /* Alerts */
+        .alert-item { padding: 10px 12px; border-left: 4px solid #d3a43b; background: #fffaf0; border-radius: 6px; margin-bottom: 10px; font-size: 0.85rem; }
+        .alert-item.high { border-color: #d9534f; background: #fff5f4; }
+        .alert-title { font-weight: 700; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .alert-date { font-size: 0.75rem; color: var(--muted); }
+
+        footer { text-align: center; margin-top: 24px; color: var(--muted); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ================= VIEW 1: LOGIN ================= -->
+        <section id="loginView">
+            <div class="login-card">
+                <div style="font-size: 2.8rem; line-height: 1;">🌱</div>
+                <h1>Garden Harvest Register</h1>
+                <p>Sign in to log and track community plot yields</p>
+
+                <form id="loginForm" autocomplete="off">
+                    <div class="form-group">
+                        <label for="usernameInput">Username</label>
+                        <input type="text" id="usernameInput" class="form-input" value="admin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="passwordInput">Password</label>
+                        <input type="password" id="passwordInput" class="form-input" value="garden2026" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; min-height: 42px; margin-bottom: 8px;">
+                        Sign In to Dashboard
+                    </button>
+                    <button type="button" id="guestBtn" class="btn btn-outline" style="width: 100%; min-height: 38px;">
+                        Continue as Guest (Preview)
+                    </button>
+                </form>
+
+                <div style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border);">
+                    <div style="font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; font-weight: 700;">Quick Sign-in:</div>
+                    <div class="quick-logins">
+                        <button type="button" class="btn btn-outline btn-sm" id="quickAdminBtn">👤 Admin</button>
+                        <button type="button" class="btn btn-outline btn-sm" id="quickAkarshBtn">👤 Akarsh</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 2: DASHBOARD ================= -->
+        <section id="dashboardView">
+            <!-- Header -->
+            <header>
+                <div>
+                    <h1>🌱 Garden Harvest Register</h1>
+                    <p>Daily yields, crop categories & bed performance across plots.</p>
+                </div>
+                <div class="user-panel">
+                    <span>👤 <strong id="userNameDisplay">Administrator</strong> (<span id="userRoleDisplay">Manager</span>)</span>
+                    <button type="button" id="logoutBtn" class="btn btn-outline btn-sm" style="color: #a3342c;">Sign Out</button>
+                </div>
+            </header>
+
+            <!-- Category Stat Strip -->
+            <div class="category-strip">
+                <div class="cat-box veg">
+                    <div class="icon">🥬</div>
+                    <div><div class="name">Vegetables</div><div class="val" id="statVeg">137.3 kg</div></div>
+                </div>
+                <div class="cat-box root">
+                    <div class="icon">🥕</div>
+                    <div><div class="name">Roots / Root Crops</div><div class="val" id="statRoot">168.7 kg</div></div>
+                </div>
+                <div class="cat-box fruit">
+                    <div class="icon">🍓</div>
+                    <div><div class="name">Fruits</div><div class="val" id="statFruit">100.9 kg</div></div>
+                </div>
+                <div class="cat-box herb">
+                    <div class="icon">🌿</div>
+                    <div><div class="name">Herbs</div><div class="val" id="statHerb">31.4 kg</div></div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="card kpi-card">
+                    <div class="kpi-title">Total Yield Recorded</div>
+                    <div class="kpi-value" id="kpiYield">438.3 kg</div>
+                    <div class="kpi-desc">Across all 6 garden plots</div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-title">Crop Varieties</div>
+                    <div class="kpi-value" id="kpiVarieties">33 Varieties</div>
+                    <div class="kpi-desc">Across 4 major categories</div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-title">Top Producing Bed</div>
+                    <div class="kpi-value">Bed 2</div>
+                    <div class="kpi-desc">145.0 kg (Root Crops & Potatoes)</div>
+                </div>
+                <div class="card kpi-card">
+                    <div class="kpi-title">Prime Quality Rate</div>
+                    <div class="kpi-value">93.9%</div>
+                    <div class="kpi-desc">Grade A & Organic certified</div>
+                </div>
+            </div>
+
+            <!-- Main Workspace -->
+            <main class="layout-grid">
+                <!-- Left: Interactive Table & Filters -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h2 style="margin: 0; color: var(--primary); font-size: 1.15rem;">Harvest Register Log</h2>
+                        <span id="recordCounter" style="font-size: 0.85rem; color: var(--muted); font-weight: 700;">Loading...</span>
+                    </div>
+
+                    <!-- Category Pills -->
+                    <div class="category-pills" id="categoryPills">
+                        <button type="button" class="pill-btn active" data-cat="all">All Crops <span class="pill-count" id="countAll">33</span></button>
+                        <button type="button" class="pill-btn" data-cat="Vegetables">🥬 Vegetables <span class="pill-count">10</span></button>
+                        <button type="button" class="pill-btn" data-cat="Fruits">🍓 Fruits <span class="pill-count">7</span></button>
+                        <button type="button" class="pill-btn" data-cat="Herbs">🌿 Herbs <span class="pill-count">8</span></button>
+                        <button type="button" class="pill-btn" data-cat="Root Crops">🥕 Roots <span class="pill-count">8</span></button>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="filter-controls">
+                        <input type="text" id="filterInput" class="search-box" placeholder="🔍 Search crop, bed, variety, notes...">
+                        <select id="categoryFilter" class="filter-select">
+                            <option value="all">All Categories</option>
+                            <option value="Vegetables">🥬 Vegetables</option>
+                            <option value="Fruits">🍓 Fruits</option>
+                            <option value="Herbs">🌿 Herbs</option>
+                            <option value="Root Crops">🥕 Roots / Root Crops</option>
+                        </select>
+                        <select id="bedFilter" class="filter-select">
+                            <option value="all">All Beds</option>
+                            <option value="Bed 1">Bed 1 (Herbs & Berries)</option>
+                            <option value="Bed 2">Bed 2 (Root Crops)</option>
+                            <option value="Bed 3">Bed 3 (Tomatoes & Peppers)</option>
+                            <option value="Bed 4">Bed 4 (Greens & Brassicas)</option>
+                            <option value="Bed 5">Bed 5 (Orchard & Fruits)</option>
+                            <option value="Bed 6">Bed 6 (Squash & Melons)</option>
+                        </select>
+                    </div>
+
+                    <!-- Table with all Vegetables, Fruits, Roots, Herbs -->
+                    <div class="table-wrapper">
+                        <table id="harvestTable">
+                            <thead>
+                                <tr>
+                                    <th data-sort="date">Date ⇕</th>
+                                    <th data-sort="crop">Crop ⇕</th>
+                                    <th>Variety</th>
+                                    <th data-sort="qty">Quantity ⇕</th>
+                                    <th data-sort="cat">Category ⇕</th>
+                                    <th>Quality</th>
+                                    <th data-sort="bed">Bed ⇕</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- VEGETABLES -->
+                                <tr data-category="Vegetables" data-bed="Bed 3">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Roma Tomato</strong></td>
+                                    <td>Determinate</td>
+                                    <td><span class="weight-pill">14.5 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 3</span></td>
+                                    <td>Harvested by Akarsh • High sweetness</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 3">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Marketmore Cucumber</strong></td>
+                                    <td>Slicing</td>
+                                    <td><span class="weight-pill">22.4 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 3</span></td>
+                                    <td>Crisp morning pick • Uniform straight fruits</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 4">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Calabrese Broccoli</strong></td>
+                                    <td>Waltham 29</td>
+                                    <td><span class="weight-pill">15.2 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 4</span></td>
+                                    <td>Tight central crowns • Tender side shoots</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 4">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Lacinato Kale</strong></td>
+                                    <td>Tuscan Dinosaur</td>
+                                    <td><span class="weight-pill">9.4 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-org">Organic</span></td>
+                                    <td><span class="bed-badge">Bed 4</span></td>
+                                    <td>Tender crinkled leaves • Insect-free</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 4">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Butterhead Lettuce</strong></td>
+                                    <td>Buttercrunch</td>
+                                    <td><span class="weight-pill">8.6 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-org">Organic</span></td>
+                                    <td><span class="bed-badge">Bed 4</span></td>
+                                    <td>Delicate buttery hearts • Farm-to-table</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 3">
+                                    <td>2026-11-21</td>
+                                    <td><strong>Bell Pepper</strong></td>
+                                    <td>California Wonder</td>
+                                    <td><span class="weight-pill">11.2 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 3</span></td>
+                                    <td>Thick-walled green and red mix</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 6">
+                                    <td>2026-11-21</td>
+                                    <td><strong>Black Beauty Eggplant</strong></td>
+                                    <td>Heirloom Standard</td>
+                                    <td><span class="weight-pill">12.8 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 6</span></td>
+                                    <td>Deep glossy purple sheen • Firm flesh</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 1">
+                                    <td>2026-11-20</td>
+                                    <td><strong>Sugar Snap Peas</strong></td>
+                                    <td>Super Sugar</td>
+                                    <td><span class="weight-pill">7.4 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>Trellised vine pick • Crunchy juicy pods</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 6">
+                                    <td>2026-11-19</td>
+                                    <td><strong>Butternut Squash</strong></td>
+                                    <td>Waltham Select</td>
+                                    <td><span class="weight-pill">28.5 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 6</span></td>
+                                    <td>Cured for pantry storage • Smooth tan rind</td>
+                                </tr>
+                                <tr data-category="Vegetables" data-bed="Bed 6">
+                                    <td>2026-11-19</td>
+                                    <td><strong>Jalapeño Pepper</strong></td>
+                                    <td>Early Jalapeño</td>
+                                    <td><span class="weight-pill">7.3 kg</span></td>
+                                    <td><span class="cat-badge veg">🥬 Vegetables</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 6</span></td>
+                                    <td>Heavy harvest • High scoville heat</td>
+                                </tr>
+
+                                <!-- FRUITS -->
+                                <tr data-category="Fruits" data-bed="Bed 6">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Sugar Baby Watermelon</strong></td>
+                                    <td>Bush Sugar Baby</td>
+                                    <td><span class="weight-pill">34.0 kg</span></td>
+                                    <td><span class="cat-badge fruit">🍓 Fruits</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 6</span></td>
+                                    <td>Dense dark rind • Sweet red flesh</td>
+                                </tr>
+                                <tr data-category="Fruits" data-bed="Bed 6">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Cantaloupe Melon</strong></td>
+                                    <td>Hale's Best</td>
+                                    <td><span class="weight-pill">19.5 kg</span></td>
+                                    <td><span class="cat-badge fruit">🍓 Fruits</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 6</span></td>
+                                    <td>Full-slip ripeness • Floral orange flesh</td>
+                                </tr>
+                                <tr data-category="Fruits" data-bed="Bed 5">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Crimson Seedless Grapes</strong></td>
+                                    <td>Table Vine</td>
+                                    <td><span class="weight-pill">16.2 kg</span></td>
+                                    <td><span class="cat-badge fruit">🍓 Fruits</span></td>
+                                    <td><span class="grade-badge grade-b">Grade B</span></td>
+                                    <td><span class="bed-badge">Bed 5</span></td>
+                                    <td>Sweet crisp dessert berries</td>
+                                </tr>
+                                <tr data-category="Fruits" data-bed="Bed 5">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Meyer Lemon</strong></td>
+                                    <td>Dwarf Bush</td>
+                                    <td><span class="weight-pill">14.0 kg</span></td>
+                                    <td><span class="cat-badge fruit">🍓 Fruits</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 5</span></td>
+                                    <td>Thin rind • Sweet floral citrus</td>
+                                </tr>
+                                <tr data-category="Fruits" data-bed="Bed 5">
+                                    <td>2026-11-21</td>
+                                    <td><strong>Albion Strawberry</strong></td>
+                                    <td>Everbearing</td>
+                                    <td><span class="weight-pill">6.8 kg</span></td>
+                                    <td><span class="cat-badge fruit">🍓 Fruits</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 5</span></td>
+                                    <td>Hand-picked daily • Bright red berries</td>
+                                </tr>
+                                <tr data-category="Fruits" data-bed="Bed 5">
+                                    <td>2026-11-20</td>
+                                    <td><strong>Triple Crown Blackberry</strong></td>
+                                    <td>Thornless Canes</td>
+                                    <td><span class="weight-pill">5.8 kg</span></td>
+                                    <td><span class="cat-badge fruit">🍓 Fruits</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 5</span></td>
+                                    <td>Juicy glossy drupelets • Packed in punnets</td>
+                                </tr>
+                                <tr data-category="Fruits" data-bed="Bed 5">
+                                    <td>2026-11-19</td>
+                                    <td><strong>Patriot Blueberry</strong></td>
+                                    <td>Highbush</td>
+                                    <td><span class="weight-pill">4.6 kg</span></td>
+                                    <td><span class="cat-badge fruit">🍓 Fruits</span></td>
+                                    <td><span class="grade-badge grade-c">Grade C</span></td>
+                                    <td><span class="bed-badge">Bed 5</span></td>
+                                    <td>Late season pick • Small berry clusters</td>
+                                </tr>
+
+                                <!-- ROOTS / ROOT CROPS -->
+                                <tr data-category="Root Crops" data-bed="Bed 2">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Yukon Gold Potatoes</strong></td>
+                                    <td>Early Yellow</td>
+                                    <td><span class="weight-pill">45.2 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 2</span></td>
+                                    <td>Creamy yellow flesh • Clean skin finish</td>
+                                </tr>
+                                <tr data-category="Root Crops" data-bed="Bed 2">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Jewel Sweet Potato</strong></td>
+                                    <td>Copper Skin</td>
+                                    <td><span class="weight-pill">38.6 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 2</span></td>
+                                    <td>Heavy tuber set • Deep orange interior</td>
+                                </tr>
+                                <tr data-category="Root Crops" data-bed="Bed 2">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Yellow Spanish Onion</strong></td>
+                                    <td>Long Day</td>
+                                    <td><span class="weight-pill">26.4 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 2</span></td>
+                                    <td>Sun-dried on wire racks • Pungent globes</td>
+                                </tr>
+                                <tr data-category="Root Crops" data-bed="Bed 2">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Nantes Carrots</strong></td>
+                                    <td>Early Coreless</td>
+                                    <td><span class="weight-pill">18.0 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-b">Grade B</span></td>
+                                    <td><span class="bed-badge">Bed 2</span></td>
+                                    <td>Washed & bundled • Sweet taproots</td>
+                                </tr>
+                                <tr data-category="Root Crops" data-bed="Bed 4">
+                                    <td>2026-11-21</td>
+                                    <td><strong>Chioggia Beetroot</strong></td>
+                                    <td>Candy Stripe</td>
+                                    <td><span class="weight-pill">14.8 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-org">Organic</span></td>
+                                    <td><span class="bed-badge">Bed 4</span></td>
+                                    <td>Beautiful pink & white rings</td>
+                                </tr>
+                                <tr data-category="Root Crops" data-bed="Bed 2">
+                                    <td>2026-11-21</td>
+                                    <td><strong>Purple Haze Carrots</strong></td>
+                                    <td>Hybrid Purple</td>
+                                    <td><span class="weight-pill">11.3 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 2</span></td>
+                                    <td>Deep purple skin with orange core</td>
+                                </tr>
+                                <tr data-category="Root Crops" data-bed="Bed 1">
+                                    <td>2026-11-20</td>
+                                    <td><strong>Hardneck Garlic</strong></td>
+                                    <td>Music Porcelain</td>
+                                    <td><span class="weight-pill">8.9 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>Huge aromatic cloves • Clean white wrappers</td>
+                                </tr>
+                                <tr data-category="Root Crops" data-bed="Bed 2">
+                                    <td>2026-11-20</td>
+                                    <td><strong>Red Radish</strong></td>
+                                    <td>Cherry Belle</td>
+                                    <td><span class="weight-pill">5.5 kg</span></td>
+                                    <td><span class="cat-badge root">🥕 Roots</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 2</span></td>
+                                    <td>Quick harvest • Crisp with mild spice</td>
+                                </tr>
+
+                                <!-- HERBS -->
+                                <tr data-category="Herbs" data-bed="Bed 6">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Lemongrass</strong></td>
+                                    <td>West Indian</td>
+                                    <td><span class="weight-pill">6.0 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 6</span></td>
+                                    <td>Thick stalks • Citral herbal scent</td>
+                                </tr>
+                                <tr data-category="Herbs" data-bed="Bed 1">
+                                    <td>2026-11-23</td>
+                                    <td><strong>Italian Parsley</strong></td>
+                                    <td>Gigante Flat-Leaf</td>
+                                    <td><span class="weight-pill">5.6 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>Dark green foliage • High mineral flavor</td>
+                                </tr>
+                                <tr data-category="Herbs" data-bed="Bed 1">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Peppermint</strong></td>
+                                    <td>Black Mitcham</td>
+                                    <td><span class="weight-pill">4.2 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-org">Organic</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>Strong menthol aroma • Cut for teas</td>
+                                </tr>
+                                <tr data-category="Herbs" data-bed="Bed 4">
+                                    <td>2026-11-22</td>
+                                    <td><strong>Coriander / Cilantro</strong></td>
+                                    <td>Santo Long-Standing</td>
+                                    <td><span class="weight-pill">4.1 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 4</span></td>
+                                    <td>Slow bolting • Pungent fresh foliage</td>
+                                </tr>
+                                <tr data-category="Herbs" data-bed="Bed 1">
+                                    <td>2026-11-21</td>
+                                    <td><strong>Greek Oregano</strong></td>
+                                    <td>True Greek</td>
+                                    <td><span class="weight-pill">3.4 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>High essential oil content • Pungent warmth</td>
+                                </tr>
+                                <tr data-category="Herbs" data-bed="Bed 1">
+                                    <td>2026-11-21</td>
+                                    <td><strong>Genovese Basil</strong></td>
+                                    <td>Sweet Leaf</td>
+                                    <td><span class="weight-pill">3.2 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>Morning harvest • Tender sweet leaves</td>
+                                </tr>
+                                <tr data-category="Herbs" data-bed="Bed 1">
+                                    <td>2026-11-20</td>
+                                    <td><strong>Garden Thyme</strong></td>
+                                    <td>English Winter</td>
+                                    <td><span class="weight-pill">2.8 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-a">Grade A</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>Dense woody sprigs • Bundled for drying</td>
+                                </tr>
+                                <tr data-category="Herbs" data-bed="Bed 1">
+                                    <td>2026-11-20</td>
+                                    <td><strong>Rosemary</strong></td>
+                                    <td>Tuscan Blue</td>
+                                    <td><span class="weight-pill">2.1 kg</span></td>
+                                    <td><span class="cat-badge herb">🌿 Herbs</span></td>
+                                    <td><span class="grade-badge grade-b">Grade B</span></td>
+                                    <td><span class="bed-badge">Bed 1</span></td>
+                                    <td>Pruned needle foliage • Drying racks loaded</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right: Yield Bars & Alerts -->
+                <aside style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="card">
+                        <h3 style="margin: 0 0 12px; color: var(--primary); font-size: 1rem;">Top Yielding Crops</h3>
+                        <div id="yieldBars">
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🥔 Yukon Gold Potatoes (Roots)</span><strong>45.2 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 100%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🍠 Jewel Sweet Potato (Roots)</span><strong>38.6 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 85%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🍉 Sugar Baby Watermelon (Fruits)</span><strong>34.0 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 75%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🎃 Butternut Squash (Vegetables)</span><strong>28.5 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 63%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🧅 Yellow Spanish Onion (Roots)</span><strong>26.4 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 58%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🥒 Marketmore Cucumber (Vegetables)</span><strong>22.4 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 50%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🍈 Cantaloupe Melon (Fruits)</span><strong>19.5 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 43%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🍅 Roma Tomatoes (Vegetables)</span><strong>14.5 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 32%;"></div></div>
+                            </div>
+                            <div class="crop-bar">
+                                <div class="crop-bar-label"><span>🌿 Lemongrass & Herbs</span><strong>6.0 kg</strong></div>
+                                <div class="crop-bar-bg"><div class="crop-bar-fill" style="width: 13%;"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin: 0 0 12px; color: var(--primary); font-size: 1rem;">Field Alerts & Notes</h3>
+                        <div class="alert-item high">
+                            <div class="alert-title"><span>⚠️ Pest Check: Aphids Cleared</span><span class="alert-date">Nov 22</span></div>
+                            <div>Bed 4 Kale and Broccoli treated with organic neem oil. Zero colonies found.</div>
+                        </div>
+                        <div class="alert-item">
+                            <div class="alert-title"><span>💧 Drip Irrigation Optimal</span><span class="alert-date">Nov 21</span></div>
+                            <div>Bed 2 line flush completed; micro-emitters flowing at target 15 PSI.</div>
+                        </div>
+                        <div class="alert-item">
+                            <div class="alert-title"><span>🌱 Peak Harvest Notice</span><span class="alert-date">Nov 23</span></div>
+                            <div>Bed 6 Watermelons and Bed 3 Cucumbers reached optimal sweetness.</div>
+                        </div>
+                    </div>
+                </aside>
+            </main>
+
+            <footer>
+                Garden Harvest Register System • HTML5, CSS3, JavaScript & Python
+            </footer>
+        </section>
+    </div>
+
+    <!-- JavaScript Controller -->
+    <script src="project.js"></script>
+</body>
+</html>
